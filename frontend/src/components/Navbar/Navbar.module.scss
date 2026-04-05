@@ -350,3 +350,87 @@
   }
 
 }
+/* ================= LOGIN BUTTON ================= */
+
+.loginBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(
+    135deg,
+    #3b82f6,
+    #1d4ed8
+  );
+
+  color: white;
+
+  border: none;
+
+  padding: 8px 18px;
+
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  box-shadow:
+    0 4px 14px rgba(59,130,246,0.35);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Hover */
+
+.loginBtn:hover {
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1e40af
+  );
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 18px rgba(59,130,246,0.45);
+}
+
+/* Click */
+
+.loginBtn:active {
+  transform: scale(0.97);
+}
+
+/* Focus (accessibility) */
+
+.loginBtn:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(59,130,246,0.35);
+}
+/* ================= LOGIN BUTTON RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+  .loginBtn {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  .loginBtn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+}
