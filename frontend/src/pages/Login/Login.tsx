@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import Navbar from "../../components/Navbar/Navbar";
 
 /* ===== LOTTIE COMPONENT (NEW) ===== */
 
@@ -127,15 +128,7 @@ const Login = () => {
       <Container>
 
         {/* NAVBAR */}
-        <Navbar>
-          <Logo>
-            <LogoIcon>⚖️</LogoIcon>
-            adjournment <LogoSpan>AI</LogoSpan>
-          </Logo>
-          <BackButton onClick={() => navigate("/")}>
-            Back to Home
-          </BackButton>
-        </Navbar>
+       <Navbar />
 
         {/* FORM + LOTTIE */}
         <FormWrapper>
@@ -231,16 +224,6 @@ const Container = styled.div`
   flex-direction: column;
 `;
 
-const Navbar = styled.nav`
-  height: 56px;
-  background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-`;
-
 const LogoIcon = styled.span`margin-right: 6px;`;
 
 const Logo = styled.div`
@@ -264,19 +247,40 @@ const BackButton = styled.button`
 
 const FormWrapper = styled.div`
   flex: 1;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 60px;
-  padding: 40px 24px;
-`;
 
+  gap: 60px;
+
+  padding: 40px 24px;
+
+  @media (max-width: 1024px) {
+    gap: 40px;
+  }
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    padding: 32px 18px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 24px 12px;
+  }
+`;
 const RightSide = styled.div`
   width: 700px;
   height: 560px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media (max-width: 1100px) {
+    width: 520px;
+    height: 420px;
+  }
 
   @media (max-width: 900px) {
     display: none;
@@ -292,7 +296,8 @@ const StyledWrapper = styled.div`
     gap: 0;
     background: #ffffff;
     padding: 36px 38px 32px;
-    width: 430px;
+    width: 100%;
+max-width: 430px;
     border-radius: 18px;
     box-shadow:
       0 0 0 1px rgba(30,58,138,0.08),
@@ -410,7 +415,14 @@ const FlexRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 22px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 `;
 
 const RememberLabel = styled.label`
@@ -546,11 +558,25 @@ const GoogleButton = styled.button`
 
 const Footer = styled.footer`
   padding: 14px 24px;
-  background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%);
+
+  background: linear-gradient(
+    90deg,
+    #0f172a 0%,
+    #1e3a8a 100%
+  );
+
   display: flex;
   justify-content: space-between;
+
   font-size: 12px;
   color: #e2e8f0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+  }
 `;
 
 const LeftFooter = styled.div``;
