@@ -477,12 +477,25 @@ const HeroBanner = styled.div`
 const HeroBannerInner = styled.div`
   max-width: 1200px;
   margin: 0 auto;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 40px;
+
   position: relative;
   z-index: 1;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  @media (max-width: 600px) {
+    gap: 18px;
+  }
 `;
 
 const HeroLeft = styled.div`display:flex;flex-direction:column;gap:12px;`;
@@ -492,6 +505,14 @@ const HeroTitle = styled.h1`
   font-size: 2.2rem;
   font-weight: 700;
   color: #ffffff;
+
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const HeroSub = styled.p`
@@ -529,6 +550,15 @@ const HeroRight = styled.div`
   align-items: flex-end;
   gap: 12px;
   flex-shrink: 0;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  @media (max-width: 600px) {
+    gap: 8px;
+  }
 `;
 
 const PodiumItem = styled.div<{ $center?: boolean }>`
@@ -602,7 +632,15 @@ const MainContent = styled.div`
 `;
 
 const LeftCol = styled.div`display:flex;flex-direction:column;gap:10px;`;
-const RightCol = styled.div`display:flex;flex-direction:column;gap:0;`;
+const RightCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  @media (max-width: 900px) {
+    margin-top: 10px;
+  }
+`;
 
 const SectionLabel = styled.div`
   font-family: 'EB Garamond', Georgia, serif;
@@ -635,11 +673,26 @@ const Card = styled.div`
 const Row = styled.div<{ $expanded?: boolean }>`
   display: flex;
   align-items: center;
+
   padding: 13px 18px;
+
   cursor: pointer;
+
   transition: background 0.18s;
-  background: ${p => p.$expanded ? "#eff6ff" : "transparent"};
-  &:hover { background: #f8faff; }
+
+  background: ${p =>
+    p.$expanded
+      ? "#eff6ff"
+      : "transparent"};
+
+  &:hover {
+    background: #f8faff;
+  }
+
+  @media (max-width: 600px) {
+    padding: 10px 12px;
+    gap: 6px;
+  }
 `;
 
 const RankBadge = styled.div`
@@ -675,8 +728,14 @@ const NameCol = styled.div`
   display: flex;
   flex-direction: column;
   gap: 3px;
+
   flex-shrink: 0;
   min-width: 130px;
+
+  @media (max-width: 600px) {
+    min-width: auto;
+    flex: 1;
+  }
 `;
 
 const UserName = styled.span`
@@ -907,11 +966,24 @@ const ActivityTime = styled.span`
 /* ── Footer ── */
 const Footer = styled.footer`
   padding: 14px 24px;
-  background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%);
+
+  background: linear-gradient(
+    90deg,
+    #0f172a 0%,
+    #1e3a8a 100%
+  );
+
   display: flex;
   justify-content: space-between;
+
   font-size: 12px;
   color: #e2e8f0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
 `;
 const LeftFooter = styled.div``;
 const RightFooter = styled.div``;

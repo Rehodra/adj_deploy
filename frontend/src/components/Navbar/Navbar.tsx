@@ -79,6 +79,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+const [mobileOpen, setMobileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -149,8 +150,20 @@ const Navbar = () => {
 
       {/* NAV LINKS */}
 
-      <div className={styles.navLinks}>
+      <button
+  className={styles.menuBtn}
+  onClick={() =>
+    setMobileOpen(!mobileOpen)
+  }
+>
+  ☰
+</button>
 
+<div
+  className={`${styles.navLinks} ${
+    mobileOpen ? styles.mobileOpen : ""
+  }`}
+>
   <Link
     to="/"
     className={styles.navLink}
