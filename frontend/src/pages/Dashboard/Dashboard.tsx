@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from "../../components/Navbar/Navbar";
 import styles from './Dashboard.module.scss';
 import {
   BsLightningCharge,
@@ -159,18 +160,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className={styles.root}>
       {/* TOP NAVBAR */}
-      <nav className={styles.navbar}>
-        <div className={styles.navLogo}>
-          ADJOURNMENT <span>AI</span>
-        </div>
-        <div className={styles.navLinks}>
-          <a onClick={() => navigate('/')} className={styles.navLink}>Home</a>
-          <a onClick={() => navigate('/cases')} className={styles.navLink}>Cases</a>
-          <a onClick={() => navigate('/judgements')} className={styles.navLink}>Judgements</a>
-          <a onClick={() => navigate('/dashboard')} className={`${styles.navLink} ${styles.navActive}`}>Dashboard</a>
-          <a onClick={() => navigate('/leaderboard')} className={styles.navLink}>Leaderboard</a>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className={styles.container}>
         {/* SIDEBAR */}
@@ -273,7 +263,7 @@ const Dashboard: React.FC = () => {
                         <li>Objection handling drills</li>
                       </ul>
                     </div>
-                    <button className={styles.practiceBtn}><BsPlayCircle /> Start Practice</button>
+                    <button className={styles.practiceBtn} onClick={() => navigate('/cases')}><BsPlayCircle /> Start Practice</button>
                   </div>
                 </section>
 
@@ -449,7 +439,7 @@ const Dashboard: React.FC = () => {
                       <li>Evidence contradictions</li>
                     </ul>
                   </div>
-                  <button className={styles.practiceBtn}><BsPlayCircle /> Start Practice</button>
+                  <button className={styles.practiceBtn} onClick={() => navigate('/cases')}><BsPlayCircle /> Start Practice</button>
                 </div>
               </section>
             </div>
