@@ -151,14 +151,47 @@ async def submit_argument(
         # 4. Translate responses back to user's language if needed
         judge_feedback = evaluation["feedback"]
         opponent_response_text = opponent_response
+        suggestions = evaluation["suggestions"]
+        incorrect_sections = evaluation["incorrect_sections"]
         
         if language != "English":
-            print(f"Translating opponent response to {language}")
-            # Keep judge feedback in English
+            print(f"Translating entire judge feedback and response to {language}")
+            
+            # Translate judge feedback
+            judge_feedback = await translation_service.translate_from_english(
+                evaluation["feedback"],
+                language
+            )
+            
+            # Translate opponent response
             opponent_response_text = await translation_service.translate_from_english(
                 opponent_response,
                 language
             )
+            
+            # Translate suggestions list
+            if evaluation["suggestions"]:
+                translated_suggestions = []
+                for sug in evaluation["suggestions"]:
+                    translated_sug = await translation_service.translate_from_english(sug, language)
+                    translated_suggestions.append(translated_sug)
+                suggestions = translated_suggestions
+                
+            # Translate incorrect sections reasons
+            if evaluation["incorrect_sections"]:
+                translated_incorrect = []
+                for inc in evaluation["incorrect_sections"]:
+                    # The incorrect_sections reason should be translated
+                    reason_to_translate = inc.get("reason", "")
+                    if reason_to_translate:
+                        translated_reason = await translation_service.translate_from_english(reason_to_translate, language)
+                        translated_incorrect.append({
+                            "section": inc.get("section", ""),
+                            "reason": translated_reason
+                        })
+                    else:
+                        translated_incorrect.append(inc)
+                incorrect_sections = translated_incorrect
 
         # Trigger TTS caching in the background for the opponent's translated string
         from app.api.routes.audio import text_to_speech
@@ -172,7 +205,11 @@ async def submit_argument(
             "cited_sections": request.cited_sections,
             "evidence_references": request.evidence_references,
             "evaluation": evaluation,
+            "judge_feedback_translated": judge_feedback,
             "opponent_response": opponent_response,
+            "opponent_response_translated": opponent_response_text,
+            "suggestions_translated": suggestions,
+            "incorrect_sections_translated": incorrect_sections,
             "language": language,
             "turn_score": turn_score,
             "phase": request.phase.value if request.phase else session_data["current_phase"].value,
@@ -197,8 +234,8 @@ async def submit_argument(
             overall_score=evaluation["overall_score"],
             feedback=judge_feedback,
             correct_sections=evaluation["correct_sections"],
-            incorrect_sections=evaluation["incorrect_sections"],
-            suggestions=evaluation["suggestions"],
+            incorrect_sections=incorrect_sections,
+            suggestions=suggestions,
             turn_score=turn_score,
             cumulative_score=session_data["total_score"],
             performance_tier=performance_tier,
@@ -237,6 +274,9 @@ async def get_argument_history(
         # Format arguments for response
         formatted_arguments = []
         for arg in arguments:
+            # Use translated versions if available, otherwise original
+            opponent_resp = arg.get("opponent_response_translated", arg.get("opponent_response", ""))
+            
             formatted_arg = {
                 "argument_id": arg["argument_id"],
                 "argument_text": arg["argument_text"],
@@ -248,9 +288,10 @@ async def get_argument_history(
                     "legal_accuracy": arg["evaluation"]["legal_accuracy_score"],
                     "reasoning": arg["evaluation"]["reasoning_score"],
                     "evidence": arg["evaluation"]["evidence_score"],
-                    "overall": arg["evaluation"]["overall_score"]
+                    "overall": arg["evaluation"]["overall_score"],
+                    "feedback": arg.get("judge_feedback_translated", arg["evaluation"].get("feedback", ""))
                 },
-                "opponent_response_preview": arg["opponent_response"][:200] + "..." if len(arg["opponent_response"]) > 200 else arg["opponent_response"],
+                "opponent_response_preview": opponent_resp[:200] + "..." if len(opponent_resp) > 200 else opponent_resp,
                 "timestamp": arg["timestamp"]
             }
             formatted_arguments.append(formatted_arg)

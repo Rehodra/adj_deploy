@@ -57,6 +57,25 @@ async def speech_to_text(
     try:
         audio_bytes = await file.read()
         
+        # Map the input language to Sarvam's language code
+        # Sarvam STT supports many Indian languages by code
+        sarvam_stt_languages = {
+            "English": "en-IN",
+            "Hindi": "hi-IN",
+            "Bengali": "bn-IN",
+            "Telugu": "te-IN",
+            "Marathi": "mr-IN",
+            "Tamil": "ta-IN",
+            "Gujarati": "gu-IN",
+            "Kannada": "kn-IN",
+            "Odia": "od-IN",
+            "Odiya": "od-IN",
+            "Malayalam": "ml-IN",
+            "Punjabi": "pa-IN"
+        }
+        
+        sarvam_lang_code = sarvam_stt_languages.get(language, "unknown")
+        
         response = requests.post(
             "https://api.sarvam.ai/speech-to-text",
             headers={"api-subscription-key": _settings.SARVAM_API_KEY},
@@ -65,8 +84,8 @@ async def speech_to_text(
             },
             data={
                 "model": "saaras:v3",
-                "mode": "translate",
-                "language_code": "unknown"
+                "mode": "transcribe",  # Return native script instead of English translation
+                "language_code": sarvam_lang_code
             }
         )
         
