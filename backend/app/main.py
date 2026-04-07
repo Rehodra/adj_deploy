@@ -11,14 +11,18 @@ from contextlib import asynccontextmanager
 import uvicorn
 from datetime import datetime
 import json
-import os # Added for os.path.exists check
-import logging # Added for logger
-from fastapi.responses import StreamingResponse
-from gtts import gTTS
+import os
 import io
+import hashlib
+import logging
+
+import cloudinary
+import cloudinary.uploader
+
+from fastapi.responses import StreamingResponse, RedirectResponse
+from gtts import gTTS
 import requests
 import httpx
-import hashlib
 from socketio import ASGIApp
 from app.config import get_settings
 from app.api.routes import cases, session, argument, audio, auth
@@ -30,6 +34,9 @@ from app.sockets import events as socket_events
 load_dotenv()
 # Initialize logger
 logger = logging.getLogger(__name__)
+
+# In-memory cache for ElevenLabs TTS Cloudinary URLs
+_elevenlabs_url_cache: dict[str, str] = {}
 
 # Application lifespan management
 @asynccontextmanager
@@ -44,6 +51,14 @@ async def lifespan(app: FastAPI):
     print(f"⚙️ Environment: {settings.ENV}")
     print(f"🔑 Google Gemini API Key: {'✅ Configured' if settings.GEMINI_API_KEY else '❌ Missing'}")
     print(f"📊 Vector DB Path: {settings.VECTOR_DB_PATH}")
+
+    # Configure Cloudinary
+    cloudinary.config(
+        cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
+        secure=True,
+    )
 
     logger.info("Initializing vector database...")
     if not os.path.exists(settings.VECTOR_DB_PATH):
@@ -255,76 +270,62 @@ API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 @app.get("/tts")
 async def elevenlabs_tts(text: str, role: str = "judge"):
-
     # 1. Trim text
     text = text.strip()[:300]
 
-    # 2. Ensure cache folder exists
-    os.makedirs("cache", exist_ok=True)
-
-    # 3. Cache key
+    # 2. Build cache key
     key = hashlib.md5(text.encode()).hexdigest()
-    file_path = f"cache/{key}.mp3"
 
-    # 4. Return cached audio
-    if os.path.exists(file_path) and os.path.getsize(file_path) > 1000:
-        return StreamingResponse(open(file_path, "rb"), media_type="audio/mpeg")
+    # 3. Serve from in-memory cache if already uploaded
+    if key in _elevenlabs_url_cache:
+        return RedirectResponse(url=_elevenlabs_url_cache[key])
 
     voice_id = "JBFqnCBsd6RMkjVDRZzb"
-
-    # ✅ IMPORTANT: use /stream
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream"
 
     headers = {
         "xi-api-key": API_KEY,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
-
     data = {
         "text": text,
         "model_id": "eleven_multilingual_v2",
-        "voice_settings": {
-            "stability": 0.3,
-            "similarity_boost": 0.7
-        }
+        "voice_settings": {"stability": 0.3, "similarity_boost": 0.7},
     }
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(url, json=data, headers=headers)
 
-        # ❌ Handle API errors
         if response.status_code != 200:
             print("❌ ElevenLabs error:", response.text)
             return JSONResponse(
                 {"error": "TTS failed", "details": response.text},
-                status_code=500
+                status_code=500,
             )
 
-        # ❌ Check empty/bad audio
         if not response.content or len(response.content) < 1000:
             print("❌ Empty audio received")
-            return JSONResponse(
-                {"error": "Empty audio"},
-                status_code=500
-            )
+            return JSONResponse({"error": "Empty audio"}, status_code=500)
 
-        # 5. Save valid audio
-        with open(file_path, "wb") as f:
-            f.write(response.content)
-
-        # 6. Return audio
-        return StreamingResponse(
-            iter([response.content]),
-            media_type="audio/mpeg"
+        # 4. Upload to Cloudinary and cache the URL
+        upload_result = cloudinary.uploader.upload(
+            io.BytesIO(response.content),
+            public_id=f"elevenlabs_{key}",
+            resource_type="video",   # Cloudinary stores audio under 'video'
+            folder="adjournment_tts",
+            overwrite=False,
         )
+        cdn_url = upload_result["secure_url"]
+        _elevenlabs_url_cache[key] = cdn_url
+        logger.info(f"Uploaded ElevenLabs TTS to Cloudinary: {cdn_url}")
+
+        # 5. Redirect to Cloudinary URL
+        return RedirectResponse(url=cdn_url)
 
     except Exception as e:
         print("❌ TTS Exception:", str(e))
-        return JSONResponse(
-            {"error": "Internal TTS error"},
-            status_code=500
-        )
+        return JSONResponse({"error": "Internal TTS error"}, status_code=500)
 
 
 @app.exception_handler(Exception)

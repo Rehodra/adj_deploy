@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     # ElevenLabs TTS
     ELEVENLABS_API_KEY: str = Field(default="", env="ELEVENLABS_API_KEY")
 
+    # Cloudinary (audio file hosting)
+    CLOUDINARY_CLOUD_NAME: str = Field(default="", env="CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY: str = Field(default="", env="CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET: str = Field(default="", env="CLOUDINARY_API_SECRET")
+
     # MongoDB
     MONGODB_URI: str = Field(default="mongodb://localhost:27017", env="MONGODB_URI")
     
