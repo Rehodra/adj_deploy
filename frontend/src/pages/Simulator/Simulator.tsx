@@ -102,7 +102,7 @@ interface ChatMessage {
   incorrect_sections?: { section: string; reason: string }[];
 }
 
-type GameMode = 'ai' | 'opponent' | null;
+type GameMode = 'ai' | null;
 
 // ── MODE SELECTION MODAL ──────────────────────────────────────────────────────
 const ModeSelectionModal = ({
@@ -189,23 +189,7 @@ const ModeSelectionModal = ({
               <div className={styles.modeCardCta}>Select Mode <IconArrowRight size={14} /></div>
             </motion.button>
 
-            <motion.button
-              className={`${styles.modeCard} ${selectedMode === "opponent" ? styles.modeSelectedOpponent : ""}`}
-              data-mode="opponent"
-              onClick={() => setSelectedMode("opponent")}
-            >
-              <div className={styles.modeCardIcon}><IconUsers size={26} /></div>
-              <div className={styles.modeCardBody}>
-                <h3>Play vs Opponent</h3>
-                <p>Challenge a real person to a live courtroom debate.</p>
-                <ul className={styles.modeFeatures}>
-                  <li>Real-time multiplayer session</li>
-                  <li>Shareable session link</li>
-                  <li>AI judge evaluates both sides</li>
-                </ul>
-              </div>
-              <div className={styles.modeCardCta}>Select Mode <IconArrowRight size={14} /></div>
-            </motion.button>
+            
           </div>
 
           <div style={{ padding: "10px 22px 18px", display: "flex", justifyContent: "center" }}>
@@ -713,7 +697,7 @@ const Simulator = () => {
         const res = await axios.post("http://localhost:8000/api/session/create", {
           case_id: caseId,
           user_id: "demo_user_001",
-          mode: gameMode === 'opponent' ? 'multiplayer' : 'criminal'
+          mode: 'criminal'
         });
         setSessionId(res.data.session_id);
         setCaseFacts(res.data.case_facts);
@@ -721,7 +705,7 @@ const Simulator = () => {
         const systemMsg: ChatMessage = {
           id: 'welcome',
           type: 'system',
-          text: `Court is now in session — ${gameMode === 'opponent' ? 'Multiplayer' : 'AI Opponent'} Mode`
+          text: `Court is now in session — AI Opponent Mode`
         };
         setMessages([systemMsg]);
         setJudgeMessages([systemMsg]);
