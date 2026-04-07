@@ -31,7 +31,7 @@ import {
   BsBarChart,
 } from 'react-icons/bs';
 
-type TabType = 'overview' | 'analytics' | 'skills' | 'activity' | 'cases';
+type TabType = 'overview' | 'analytics' | 'skills' | 'activity';
 
 const heatmapData = [
   [3, 5, 2, 4, 6, 1, 0],
@@ -154,7 +154,6 @@ const Dashboard: React.FC = () => {
     { id: 'analytics', icon: <BsBarChartLine />, label: 'Analytics' },
     { id: 'skills', icon: <BsShieldCheck />, label: 'Skills' },
     { id: 'activity', icon: <BsClockHistory />, label: 'Activity' },
-    { id: 'cases', icon: <BsBriefcase />, label: 'Cases' },
   ];
 
   return (
@@ -206,7 +205,6 @@ const Dashboard: React.FC = () => {
                 {activeTab === 'analytics' && 'Performance Analytics'}
                 {activeTab === 'skills' && 'Skill Breakdown'}
                 {activeTab === 'activity' && 'Recent Activity'}
-                {activeTab === 'cases' && 'Case Management'}
               </h1>
               <p>Welcome back. Here is your legal performance analysis.</p>
             </div>
@@ -522,91 +520,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* ─── CASES TAB ─── */}
-          {activeTab === 'cases' && (
-            <div className={styles.dashboardGrid}>
-              <section className={styles.mainCol}>
-                <div className={styles.card}>
-                  <h3><BsArrowRepeat /> Resume Incomplete Cases</h3>
-                  {[
-                    { name: 'Theft Trial Simulation', progress: 60, tags: ['Criminal', 'Intermediate'] },
-                    { name: 'Corporate Fraud Case', progress: 35, tags: ['Civil', 'Advanced'] },
-                    { name: 'Property Dispute', progress: 80, tags: ['Civil', 'Beginner'] },
-                  ].map((c, i) => (
-                    <div key={i} className={styles.resumeCard}>
-                      <div className={styles.resumeTop}>
-                        <div>
-                          <p className={styles.resumeTitle}>{c.name}</p>
-                          <div className={styles.resumeTags}>
-                            {c.tags.map(t => <span key={t} className={styles.tag}>{t}</span>)}
-                          </div>
-                        </div>
-                        <button className={styles.resumeBtn}><BsPlayCircle /> Resume</button>
-                      </div>
-                      <div className={styles.resumeProgressRow}>
-                        <span>Progress: {c.progress}%</span>
-                      </div>
-                      <div className={styles.barBg}>
-                        <div className={styles.barFill} style={{ width: animatedBars ? `${c.progress}%` : '0%', background: '#3b82f6' }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={styles.card}>
-                  <h3><BsCheck2Circle /> Completed Cases</h3>
-                  {[
-                    { name: 'State vs Sharma', verdict: 'Won', score: 82 },
-                    { name: 'People vs Mathur', verdict: 'Lost', score: 48 },
-                    { name: 'Corp vs Mehta Ltd', verdict: 'Won', score: 88 },
-                  ].map((c, i) => (
-                    <div key={i} className={styles.completedRow}>
-                      <span className={styles.completedName}>{c.name}</span>
-                      <span className={c.verdict === 'Won' ? styles.verdictWon : styles.verdictLost}>{c.verdict}</span>
-                      <span className={styles.completedScore}>{c.score}%</span>
-                      <button className={styles.reviewBtn}>Review <BsChevronRight /></button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className={styles.sideCol}>
-                <div className={styles.card}>
-                  <h3><BsJournalBookmark /> Start New Case</h3>
-                  <div className={styles.newCaseList}>
-                    {[
-                      { name: 'Murder Trial', diff: 'Hard', type: 'Criminal' },
-                      { name: 'IP Infringement', diff: 'Medium', type: 'Civil' },
-                      { name: 'Tax Evasion', diff: 'Hard', type: 'Financial' },
-                      { name: 'Defamation Suit', diff: 'Easy', type: 'Civil' },
-                    ].map((c, i) => (
-                      <div key={i} className={styles.newCaseItem}>
-                        <div>
-                          <p className={styles.newCaseName}>{c.name}</p>
-                          <span className={styles.tag}>{c.type}</span>
-                        </div>
-                        <div className={styles.newCaseRight}>
-                          <span className={`${styles.diffBadge} ${c.diff === 'Hard' ? styles.diffHard : c.diff === 'Medium' ? styles.diffMed : styles.diffEasy}`}>{c.diff}</span>
-                          <button className={styles.startBtn}><BsPlayCircle /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={styles.card}>
-                  <h3><BsTrophy /> Case Statistics</h3>
-                  <div className={styles.legend}>
-                    <div className={styles.legendItem}><span>Total Cases</span><span>32</span></div>
-                    <div className={styles.legendItem}><span>Wins</span><span style={{ color: '#10b981' }}>22</span></div>
-                    <div className={styles.legendItem}><span>Losses</span><span style={{ color: '#ef4444' }}>6</span></div>
-                    <div className={styles.legendItem}><span>Pending</span><span style={{ color: '#f59e0b' }}>4</span></div>
-                    <div className={styles.legendItem}><span>Win Rate</span><span>68%</span></div>
-                  </div>
-                </div>
-              </section>
-            </div>
-          )}
+          
         </main>
       </div>
     </div>
