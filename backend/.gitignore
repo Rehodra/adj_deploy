@@ -43,6 +43,8 @@ venv.bak/
 .env.test.local
 .env.production.local
 .env.*
+backend/.env
+.env
 
 # Allow example env file
 !.env.example
