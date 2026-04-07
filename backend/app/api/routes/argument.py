@@ -36,6 +36,29 @@ _settings = get_settings()
 _rag_retriever = None
 _judge_agent = None
 _opponent_agent = None
+_lcel_pipeline = None         # ← Only used for final verdict (2-call path)
+_orchestrator = None          # ← Fast path for RAG context retrieval
+
+
+def get_orchestrator():
+    """Get or initialize the LegalRetrieverOrchestrator (fast path)."""
+    global _orchestrator
+    if _orchestrator is None:
+        from app.ai_system.rag.orchestrator import LegalRetrieverOrchestrator
+        _orchestrator = LegalRetrieverOrchestrator()
+    return _orchestrator
+
+
+def get_lcel_pipeline():
+    """
+    Lazy-load the LCEL pipeline — only instantiated on first verdict request.
+    Uses 2 Gemini API calls (generate + validate), so we keep it for verdicts only.
+    """
+    global _lcel_pipeline
+    if _lcel_pipeline is None:
+        from app.ai_system.rag.lcel_pipeline import LegalLCELPipeline
+        _lcel_pipeline = LegalLCELPipeline(api_key=_settings.GEMINI_API_KEY)
+    return _lcel_pipeline
 
 
 def get_rag_retriever() -> RAGRetriever:
@@ -529,6 +552,96 @@ async def export_session_data(
         raise HTTPException(
             status_code=500,
             detail=f"Error exporting session data: {str(e)}"
+        )
+
+
+@router.post("/{session_id}/verdict")
+async def get_final_verdict(
+    session_id: str,
+    session_data: Dict = Depends(get_valid_session)
+):
+    """
+    Generate a final, citation-validated verdict for the session.
+
+    This is the ONLY endpoint that uses the 2-stage LCEL pipeline:
+      - Call 1: Judge reasoning grounded in retrieved legal chunks
+      - Call 2: Citation validation to catch any hallucinated sections
+
+    This endpoint should only be called once per case at the JUDGMENT phase.
+    All regular argument submissions use the fast single-call path.
+    """
+    try:
+        import asyncio
+        import time
+
+        case_facts = session_data.get("case_facts", {})
+        arguments = session_data.get("arguments", [])
+
+        if not arguments:
+            raise HTTPException(
+                status_code=400,
+                detail="No arguments submitted yet. Cannot generate verdict."
+            )
+
+        # Build a concise verdict query from the case facts + argument history
+        case_title = case_facts.get("title", "Unknown Case")
+        charges = ", ".join(case_facts.get("charges", []))
+        last_arguments = [a["argument_text_english"] for a in arguments[-3:]]  # last 3 for context
+        argument_summary = " | ".join(last_arguments)
+
+        verdict_query = (
+            f"Case: {case_title}. Charges: {charges}. "
+            f"Based on these arguments: {argument_summary[:500]}. "
+            f"Deliver the final verdict with exact IPC/CrPC section citations."
+        )
+
+        print(f"[Verdict] Invoking 2-stage LCEL pipeline for session {session_id}")
+        start = time.time()
+
+        # Run the LCEL pipeline in a thread pool to avoid blocking the event loop
+        # (LangChain's .invoke() is synchronous)
+        pipeline = get_lcel_pipeline()
+        validated_verdict = await asyncio.get_event_loop().run_in_executor(
+            None,
+            pipeline.invoke,
+            verdict_query
+        )
+
+        latency = time.time() - start
+        print(f"[Verdict] LCEL pipeline completed in {latency:.2f}s")
+
+        # Also get the orchestrator's citation list for the response
+        orchestrator = get_orchestrator()
+        rag_result = orchestrator.retrieve_final_context(verdict_query)
+
+        # Update session to mark judgment delivered
+        from app.db import db
+        await db.db.sessions.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "judgment": validated_verdict,
+                "judgment_citations": rag_result["citations"],
+                "judgment_timestamp": __import__("datetime").datetime.utcnow()
+            }}
+        )
+
+        return {
+            "session_id": session_id,
+            "verdict": validated_verdict,
+            "citations": rag_result["citations"],
+            "detected_act": rag_result["detected_act"],
+            "pipeline": "2-stage LCEL (generate + citation-validate)",
+            "latency_seconds": round(latency, 2)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating verdict: {str(e)}"
         )
 
 

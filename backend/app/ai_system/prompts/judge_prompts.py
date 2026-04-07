@@ -24,19 +24,33 @@ Your response MUST be valid JSON in this format:
 }"""
 
 JUDGE_EVALUATION_TEMPLATE = """
-# LEGAL PROVISIONS
-{retrieved_laws}
+# REASONING PROMPT (STAGE 2)
+{reasoning_prompt}
 
-# CASE FACTS
-{case_facts}
-
-# USER ARGUMENT
+# DRAFT RULING OR USER ARGUMENT
 {user_argument}
 
 # CITED SECTIONS
 {cited_sections}
 
 Evaluate this argument and respond ONLY with the JSON format specified.
+"""
+
+LEGAL_RESEARCH_TEMPLATE = """
+You are performing Deep Legal Research on the following queries.
+# RAW CONTEXT (STAGE 1 OUTPUT)
+{retrieval_context}
+
+# RESEARCH GOAL
+Analyze these sections thoroughly and provide a structured synthesis of how they interact with the current case metadata.
+"""
+
+FINAL_RULING_TEMPLATE = """
+You are the presiding Judge. Validate the final ruling using this context.
+# VALIDATION PROMPT (STAGE 3)
+{validation_prompt}
+
+Provide the final verdict preserving exact section citations as verified.
 """
 
 JUDGE_PHASE_PROMPTS = {
