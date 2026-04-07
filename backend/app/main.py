@@ -21,7 +21,7 @@ import httpx
 import hashlib
 from socketio import ASGIApp
 from app.config import get_settings
-from app.api.routes import cases, session, argument, audio, auth
+from app.api.routes import cases, session, argument, audio, auth, chat
 from app.db import connect_to_mongo, close_mongo_connection
 from app.models.schemas import HealthResponse, ErrorResponse
 from app.sockets.socket_manager import get_sio
@@ -87,6 +87,7 @@ app.include_router(argument.router, prefix="/api/argument", tags=["argument"])
 app.include_router(cases.router, prefix="/api/cases", tags=["cases"])
 app.include_router(audio.router, prefix="/api/audio", tags=["audio"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
+app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 
 
 # Root endpoint

@@ -63,6 +63,12 @@ class ObjectionRequest(BaseModel):
     target_argument: Optional[str] = Field(None, description="Target argument ID")
 
 
+class ChatRequest(BaseModel):
+    """Request model for general chat queries"""
+    message: str = Field(..., min_length=1, max_length=5000, description="Chat message")
+    language: Optional[str] = Field("English", description="Preferred language")
+
+
 # Response Models
 class EvaluationResponse(BaseModel):
     """Response model for argument evaluation"""
@@ -163,6 +169,12 @@ class SuccessResponse(BaseModel):
     """Standard success response model"""
     message: str = Field(..., description="Success message")
     data: Optional[Dict] = Field(None, description="Response data")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response timestamp")
+
+
+class ChatResponse(BaseModel):
+    """Response model for chat queries"""
+    response: str = Field(..., description="AI response text")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response timestamp")
 
 

@@ -9,6 +9,7 @@ import "./App.css"
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import routes from "./utils/routes";
 import { AuthProvider } from "./context/AuthContext";
+import Chatbot from "./components/Chatbot/Chatbot";
 
 const router = createBrowserRouter(routes);
 
@@ -49,6 +50,7 @@ function AppRoutes() {
       <AuthProvider>
         <IconContext.Provider value={{style : {verticalAlign: "middle"}}} >
           <RouterProvider router={router} />
+          <Chatbot />
         </IconContext.Provider>
       </AuthProvider>
     </QueryClientProvider>
