@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 class TranslationService:
     """Service for translating text between languages"""
     
+
+    
     # Language code mappings for Google Translate
     LANGUAGE_CODES = {
         "English": "en",
