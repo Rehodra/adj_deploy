@@ -215,22 +215,11 @@ class TranslationService:
         return self.available
 
 
-# Global instance
+# Global singleton instance
 _translation_service = None
 
 def get_translation_service() -> TranslationService:
-    """Get or initialize translation service"""
-    global _translation_service
-    if _translation_service is None:
-        _translation_service = TranslationService()
-    return _translation_service
-
-
-# Global instance
-_translation_service = None
-
-def get_translation_service() -> TranslationService:
-    """Get or initialize translation service"""
+    """Get or initialize translation service (singleton)"""
     global _translation_service
     if _translation_service is None:
         _translation_service = TranslationService()

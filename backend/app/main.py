@@ -23,13 +23,10 @@ from fastapi.responses import StreamingResponse, RedirectResponse
 from gtts import gTTS
 import requests
 import httpx
-from socketio import ASGIApp
 from app.config import get_settings
 from app.api.routes import cases, session, argument, audio, auth
 from app.db import connect_to_mongo, close_mongo_connection
 from app.models.schemas import HealthResponse, ErrorResponse
-from app.sockets.socket_manager import get_sio
-from app.sockets import events as socket_events
 
 load_dotenv()
 # Initialize logger
@@ -150,12 +147,12 @@ async def health_check():
         except Exception as e:
             dependencies["chromadb"] = f"❌ Error: {str(e)}"
         
-        # Check sentence transformers (embeddings)
+        # Check Gemini embeddings (replaces sentence_transformers)
         try:
-            from sentence_transformers import SentenceTransformer
-            dependencies["sentence_transformers"] = "✅ Available"
+            from app.ai_system.rag.embeddings import GeminiEmbeddings
+            dependencies["gemini_embeddings"] = "✅ Available (text-embedding-004)"
         except Exception as e:
-            dependencies["sentence_transformers"] = f"❌ Error: {str(e)}"
+            dependencies["gemini_embeddings"] = f"❌ Error: {str(e)}"
         
         # Overall status
         all_healthy = all("✅" in status for status in dependencies.values())
@@ -231,7 +228,7 @@ async def http_exception_handler(request, exc: HTTPException):
         message=exc.detail,
         details={"status_code": exc.status_code},
         timestamp=datetime.utcnow()
-    ).dict()
+    ).model_dump()
     
     # Convert datetime to string for JSON serialization
     error_data["timestamp"] = error_data["timestamp"].isoformat()
@@ -336,7 +333,7 @@ async def general_exception_handler(request, exc):
         message="An unexpected error occurred",
         details={"exception": str(exc)},
         timestamp=datetime.utcnow()
-    ).dict()
+    ).model_dump()
     
     # Convert datetime to string for JSON serialization
     error_data["timestamp"] = error_data["timestamp"].isoformat()
@@ -397,21 +394,15 @@ if settings.ENV.lower() == "production":
     pass
 
 
-# Socket.io integration with ASGI
-sio = get_sio()
-socket_asgi_app = ASGIApp(sio, app)
-
-
 # Run the application
 if __name__ == "__main__":
     print("🚀 Starting AI Legal Courtroom Simulator API...")
     print(f"📍 Environment: {settings.ENV}")
     print(f"🌐 CORS Origins: {settings.CORS_ORIGINS}")
     print(f"📚 Documentation: http://localhost:8000/docs")
-    print(f"🔌 WebSocket: ws://localhost:8000/socket.io")
     
     uvicorn.run(
-        socket_asgi_app,
+        app,
         host="0.0.0.0",
         port=8000,
         reload=settings.DEBUG,

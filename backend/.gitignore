@@ -48,9 +48,11 @@ venv.bak/
 !.env.example
 
 
-# Chroma Vector Database (Ignore binary/database files but keep source data if needed)
-data/vector_db/
-data/chroma/
+# Chroma Vector Database — allow committing to git for deployment (only a few KB)
+# data/vector_db/   <-- re-enabled for Render deployment
+# data/chroma/
+!data/vector_db/
+!data/cases/
 *.db
 *.sqlite3
 *.duckdb

@@ -1,85 +1,75 @@
 """
-Local Sentence Transformer Embeddings
-Embeddings for AI Legal Courtroom Simulator
-Uses local sentence-transformers model — no API key needed, no rate limits
+Gemini Embeddings for AI Legal Courtroom Simulator
+Uses Google Gemini Embeddings API (text-embedding-004) — no extra packages
+needed; google-genai is already in requirements.txt.
 """
 
-from typing import List, Dict, Optional
+from typing import List
+from google import genai
 
 
 class GeminiEmbeddings:
     """
-    Local embedding implementation using sentence-transformers.
-    Runs entirely on your machine — no API calls, no quota issues.
-    
-    Note: Class name kept as GeminiEmbeddings for backward compatibility
-    with the rest of the codebase.
+    Embedding implementation using the Gemini Embeddings API.
+    Model: text-embedding-004 (768-dim, free with GEMINI_API_KEY)
     """
-    
-    def __init__(self, api_key: str = None, model_name: str = "all-MiniLM-L6-v2"):
+
+    def __init__(self, api_key: str = None, model_name: str = "text-embedding-004"):
         """
-        Initialize local embeddings
-        
+        Initialize Gemini embeddings.
+
         Args:
-            api_key: Ignored (kept for backward compatibility)
-            model_name: Sentence transformer model name
+            api_key: Google Gemini API key (required)
+            model_name: Embedding model name
         """
-        from sentence_transformers import SentenceTransformer
-        
-        self.model = SentenceTransformer(model_name)
+        if not api_key:
+            from app.config import get_settings
+            api_key = get_settings().GEMINI_API_KEY
+
+        self.client = genai.Client(api_key=api_key)
         self.model_name = model_name
-        self._dimension = self.model.get_sentence_embedding_dimension()
-    
+        self._dimension = 768  # text-embedding-004 fixed dimension
+
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """
-        Embed multiple documents
-        
+        Embed multiple documents using Gemini API.
+
         Args:
             texts: List of text strings to embed
-            
+
         Returns:
             List of embedding vectors
         """
-        embeddings = self.model.encode(texts, show_progress_bar=False)
-        return [emb.tolist() for emb in embeddings]
-    
+        embeddings = []
+        for text in texts:
+            result = self.client.models.embed_content(
+                model=self.model_name,
+                contents=text,
+            )
+            embeddings.append(result.embeddings[0].values)
+        return embeddings
+
     def embed_query(self, query: str) -> List[float]:
         """
-        Embed a single query
-        
+        Embed a single query using Gemini API.
+
         Args:
             query: Query string to embed
-            
+
         Returns:
             Query embedding vector
         """
-        embedding = self.model.encode(query, show_progress_bar=False)
-        return embedding.tolist()
-    
+        result = self.client.models.embed_content(
+            model=self.model_name,
+            contents=query,
+        )
+        return result.embeddings[0].values
+
     def get_embedding_dimension(self) -> int:
         """
-        Get the dimension of embeddings
-        
+        Get the dimension of embeddings.
+
         Returns:
-            Embedding dimension
+            Embedding dimension (768 for text-embedding-004)
         """
         return self._dimension
-
-
-if __name__ == "__main__":
-    embeddings = GeminiEmbeddings()
-    
-    texts = [
-        "The prosecution must prove guilt beyond reasonable doubt.",
-        "Section 302 IPC deals with murder charges.",
-        "Evidence must be relevant and admissible."
-    ]
-    
-    vectors = embeddings.embed_documents(texts)
-    
-    print(f"Generated {len(vectors)} embeddings")
-    print(f"Embedding dimension: {len(vectors[0])}")
-    
-    query = "What is the burden of proof?"
-    query_vector = embeddings.embed_query(query)
-    print(f"Query embedding dimension: {len(query_vector)}")
