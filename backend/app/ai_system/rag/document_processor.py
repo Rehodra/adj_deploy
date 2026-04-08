@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from enum import Enum
 import hashlib
 import re
-from sentence_transformers import SentenceTransformer
 
 
 class LegalDocumentType(Enum):

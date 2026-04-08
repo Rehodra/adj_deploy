@@ -43,7 +43,7 @@ def index_all_documents(
         if verbose:
             print("🚀 Starting Legal Documents Indexing...")
             print(f"📁 Documents directory: {docs_directory}")
-            print(f"🔑 Google API Key: {'✅ Configured' if settings.GOOGLE_API_KEY else '❌ Missing'}")
+            print(f"🔑 Gemini API Key: {'✅ Configured' if settings.GEMINI_API_KEY else '❌ Missing'}")
             print(f"📊 Vector DB Path: {settings.VECTOR_DB_PATH}")
         
         # Initialize components
@@ -51,7 +51,7 @@ def index_all_documents(
             print("\n🔧 Initializing components...")
         
         processor = LegalDocumentProcessor(chunk_size=800, chunk_overlap=150)
-        embedder = GeminiEmbeddings(api_key=settings.GOOGLE_API_KEY)
+        embedder = GeminiEmbeddings(api_key=settings.GEMINI_API_KEY)
         vector_store = VectorStore(persist_directory=settings.VECTOR_DB_PATH)
         
         # Clear existing data if requested

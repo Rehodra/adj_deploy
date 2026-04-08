@@ -1,10 +1,16 @@
 import os
-from sentence_transformers import SentenceTransformer
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from app.ai_system.rag.embeddings import GeminiEmbeddings
 from app.ai_system.rag.vector_store import VectorStore
 from app.ai_system.rag.document_processor import LegalChunk, LegalDocumentType
+from app.config import get_settings
 
-# Initialize embedding model
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+# Initialize Gemini embedding model
+settings = get_settings()
+model = GeminiEmbeddings(api_key=settings.GEMINI_API_KEY)
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'legal_docs'))
 
@@ -58,7 +64,7 @@ def main():
             
         if all_chunks:
             texts = [c.content for c in all_chunks]
-            embeddings = model.encode(texts, show_progress_bar=False).tolist()
+            embeddings = model.embed_documents(texts)
             vector_store.add_documents(all_chunks, embeddings)
             print(f"✅ Indexed {len(all_chunks)} {folder} sections.")
             total_added += len(all_chunks)
