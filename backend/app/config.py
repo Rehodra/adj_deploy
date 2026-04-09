@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 from typing import List
+import json
 
 
 class Settings(BaseSettings):
@@ -54,9 +55,29 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:5173"],
+        default=["https://adj-flex.vercel.app", "http://localhost:3000", "http://localhost:5173"],
         env="CORS_ORIGINS"
     )
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Accept CORS_ORIGINS as JSON array string or comma-separated string"""
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("["):
+                return json.loads(v)
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
+    # Trusted hosts (leave empty to allow all – tighten in production)
+    ALLOWED_HOSTS: List[str] = Field(
+        default=["adj-deploy-ahix.onrender.com", "localhost", "127.0.0.1"],
+        env="ALLOWED_HOSTS"
+    )
+
+    # Rate limiting (requests per minute per IP)
+    API_RATE_LIMIT: str = Field(default="60/minute", env="API_RATE_LIMIT")
     
     # Vector Database
     VECTOR_DB_PATH: str = Field(default="./data/vector_db", env="VECTOR_DB_PATH")
